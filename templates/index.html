@@ -6,50 +6,47 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+  <div id="toast" class="toast"></div>
   <div class="container">
+    <div class="resultado" id="resultado"></div>
     <h1>Monitoramento IoT</h1>
 
     <h2>Inserir Nova Leitura</h2>
-    <form method="POST" action="/leituras">
+    <form id="form-inserir" method="POST" action="/leituras">
       <label for="sensor_id">Sensor ID:</label>
       <input type="text" name="sensor_id" required><br>
-      <label for="timestamp">Timestamp (YYYY-MM-DDTHH:MM:SS):</label>
-      <input type="text" name="timestamp" required><br>
+      <label for="timestamp">Timestamp:</label>
+      <input type="datetime-local" name="timestamp" required><br>
       <label for="tipo">Tipo:</label>
       <input type="text" name="tipo" required><br>
-      <label for="temperatura">Temperatura:</label>
-      <input type="number" step="any" name="temperatura" required><br>
-      <label for="umidade">Umidade:</label>
-      <input type="number" step="any" name="umidade" required><br>
-      <label for="pressao">Pressão:</label>
-      <input type="number" step="any" name="pressao" required><br>
+      <div id="valores-inserir">
+        <label>Valores:</label><br>
+        <input type="text" placeholder="Parâmetro (ex: temperatura)" class="parametro">
+        <input type="number" step="any" placeholder="Valor" class="valor">
+        <button type="button" onclick="adicionarValor('valores-inserir')">Adicionar</button>
+      </div>
+      <ul id="lista-valores-inserir"></ul>
+      <input type="hidden" name="valores" id="input-valores-inserir">
       <button type="submit">Inserir</button>
     </form>
 
     <h2>Atualizar Leitura</h2>
-    <form method="POST" action="/leituras/update">
+    <form id="form-atualizar" method="POST" action="/leituras/update">
       <label for="sensor_id">Sensor ID:</label>
       <input type="text" name="sensor_id" required><br>
-      <label for="timestamp">Timestamp (YYYY-MM-DDTHH:MM:SS):</label>
-      <input type="text" name="timestamp" required><br>
+      <label for="timestamp">Timestamp:</label>
+      <input type="datetime-local" name="timestamp" required><br>
       <label for="tipo">Tipo:</label>
       <input type="text" name="tipo" required><br>
-      <label for="temperatura">Temperatura:</label>
-      <input type="number" step="any" name="temperatura" required><br>
-      <label for="umidade">Umidade:</label>
-      <input type="number" step="any" name="umidade" required><br>
-      <label for="pressao">Pressão:</label>
-      <input type="number" step="any" name="pressao" required><br>
+      <div id="valores-atualizar">
+        <label>Valores:</label><br>
+        <input type="text" placeholder="Parâmetro (ex: temperatura)" class="parametro">
+        <input type="number" step="any" placeholder="Valor" class="valor">
+        <button type="button" onclick="adicionarValor('valores-atualizar')">Adicionar</button>
+      </div>
+      <ul id="lista-valores-atualizar"></ul>
+      <input type="hidden" name="valores" id="input-valores-atualizar">
       <button type="submit">Atualizar</button>
-    </form>
-
-    <h2>Deletar Leitura</h2>
-    <form method="POST" action="/leituras/delete">
-      <label for="sensor_id">Sensor ID:</label>
-      <input type="text" name="sensor_id" required><br>
-      <label for="timestamp">Timestamp (YYYY-MM-DDTHH:MM:SS):</label>
-      <input type="text" name="timestamp" required><br>
-      <button type="submit">Deletar</button>
     </form>
 
     <h2>Obter Última Leitura de um Sensor</h2>
@@ -63,18 +60,20 @@
     <form id="form-intervalo">
       <label for="sensor_id_intervalo">Sensor ID:</label>
       <input type="text" id="sensor_id_intervalo" name="sensor_id" required>
-      <label for="inicio">Início (YYYY-MM-DDTHH:MM:SS):</label>
-      <input type="text" id="inicio" name="inicio" required>
-      <label for="fim">Fim (YYYY-MM-DDTHH:MM:SS):</label>
-      <input type="text" id="fim" name="fim" required>
+      <label for="inicio">Início:</label>
+      <input type="datetime-local" id="inicio" name="inicio" required>
+      <label for="fim">Fim:</label>
+      <input type="datetime-local" id="fim" name="fim" required>
       <button type="submit">Buscar</button>
     </form>
 
-    <h2>Leituras Acima de um Limite</h2>
+    <h2>Leituras Acima de um Limite (Qualquer Parâmetro)</h2>
     <form id="form-limite">
       <label for="sensor_id_limite">Sensor ID:</label>
       <input type="text" id="sensor_id_limite" name="sensor_id" required>
-      <label for="limite">Temperatura &gt; </label>
+      <label for="parametro_limite">Parâmetro:</label>
+      <input type="text" id="parametro_limite" name="parametro" placeholder="Ex: temperatura" required>
+      <label for="limite">Valor &gt; </label>
       <input type="number" step="any" id="limite" name="limite" required>
       <button type="submit">Buscar</button>
     </form>
@@ -84,32 +83,102 @@
       <button type="submit">Listar Sensores</button>
     </form>
 
-    <h2>Leituras Anômalas nas Últimas 24h</h2>
+    <h2>Leituras Anômalas nas Últimas 24h (Qualquer Parâmetro)</h2>
     <form id="form-alertas">
       <label for="sensor_id_alerta">Sensor ID:</label>
       <input type="text" id="sensor_id_alerta" name="sensor_id" required>
-      <label for="limite_alerta">Temperatura &gt; </label>
+      <label for="parametro_alerta">Parâmetro:</label>
+      <input type="text" id="parametro_alerta" name="parametro" placeholder="Ex: temperatura" required>
+      <label for="limite_alerta">Valor &gt; </label>
       <input type="number" step="any" id="limite_alerta" name="limite" value="80.0" required>
       <button type="submit">Buscar</button>
     </form>
-
-    <div class="resultado" id="resultado"></div>
   </div>
 
   <script>
-    function renderTable(data) {
+    function showToast(msg, type = "success") {
+      const toast = document.getElementById("toast");
+      toast.className = "toast " + type;
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(() => { toast.classList.remove("show"); }, 3000);
+    }
+
+    // Função para converter datetime-local para formato ISO sem o "Z"
+    function toIsoStringLocal(dtValue) {
+      if (!dtValue) return "";
+      return dtValue.length === 16 ? dtValue + ":00" : dtValue;
+    }
+
+    function adicionarValor(idDiv) {
+      const div = document.getElementById(idDiv);
+      const parametro = div.querySelector('.parametro').value.trim();
+      const valor = div.querySelector('.valor').value.trim();
+      if (!parametro || !valor) return;
+      const lista = document.getElementById('lista-' + idDiv);
+      const li = document.createElement('li');
+      li.textContent = parametro + ": " + valor;
+      li.dataset.parametro = parametro;
+      li.dataset.valor = valor;
+      li.onclick = function() { this.remove(); atualizarInputValores(idDiv); };
+      lista.appendChild(li);
+      div.querySelector('.parametro').value = '';
+      div.querySelector('.valor').value = '';
+      atualizarInputValores(idDiv);
+    }
+
+    function atualizarInputValores(idDiv) {
+      const lista = document.getElementById('lista-' + idDiv);
+      const valores = {};
+      lista.querySelectorAll('li').forEach(li => {
+        valores[li.dataset.parametro] = parseFloat(li.dataset.valor);
+      });
+      document.getElementById('input-' + idDiv).value = JSON.stringify(valores);
+    }
+
+    function renderTable(data, deletable = false) {
       if (!Array.isArray(data) || data.length === 0) return "<em>Nenhum resultado encontrado.</em>";
       let cols = Object.keys(data[0]);
       let html = "<table><thead><tr>";
       cols.forEach(c => html += `<th>${c}</th>`);
+      if (deletable) html += "<th>Ações</th>";
       html += "</tr></thead><tbody>";
-      data.forEach(row => {
+      data.forEach((row, idx) => {
         html += "<tr>";
-        cols.forEach(c => html += `<td>${row[c]}</td>`);
+        cols.forEach(c => {
+          let val = row[c];
+          if (typeof val === "object" && val !== null) val = JSON.stringify(val);
+          if (deletable && c === "timestamp") {
+            html += `<td data-timestamp-iso="${row[c]}">${val}</td>`;
+          } else {
+            html += `<td>${val}</td>`;
+          }
+        });
+        if (deletable) {
+          html += `<td><button class="btn-delete" data-sensor="${row.sensor_id}" data-timestamp="${row.timestamp}" onclick="deletarLeitura(this, this.closest('tr').querySelector('[data-timestamp-iso]').getAttribute('data-timestamp-iso'))">Deletar</button></td>`;
+        }
         html += "</tr>";
       });
       html += "</tbody></table>";
       return html;
+    }
+
+    async function deletarLeitura(btn, timestampIso) {
+      const sensor_id = btn.getAttribute("data-sensor");
+      const timestamp = timestampIso || btn.getAttribute("data-timestamp");
+      if (!confirm("Deseja realmente deletar esta leitura?")) return;
+      const resp = await fetch("/leituras/delete_one", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sensor_id, timestamp })
+      });
+      if (resp.ok) {
+        showToast("Leitura deletada com sucesso!", "success");
+        btn.closest("tr").remove();
+      } else {
+        const err = await resp.json();
+        showToast("Erro ao deletar leitura: " + (err.erro || "Erro desconhecido"), "error");
+      }
     }
 
     function renderList(data) {
@@ -117,47 +186,108 @@
       return "<ul>" + data.map(item => `<li>${item}</li>`).join("") + "</ul>";
     }
 
+    function showResult(html) {
+      const res = document.getElementById("resultado");
+      res.innerHTML = html;
+      res.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    // Inserir leitura
+    document.getElementById("form-inserir").onsubmit = function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const dados = {
+        sensor_id: form.sensor_id.value,
+        timestamp: toIsoStringLocal(form.timestamp.value),
+        tipo: form.tipo.value,
+        valores: JSON.parse(document.getElementById('input-valores-inserir').value)
+      };
+      fetch("/leituras", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dados)
+      }).then(resp => resp.ok ? resp.json() : resp.json().then(j => Promise.reject(j)))
+        .then(() => {
+          showToast("Leitura inserida com sucesso!", "success");
+          form.reset();
+          document.getElementById('lista-valores-inserir').innerHTML = '';
+          document.getElementById('input-valores-inserir').value = '';
+        })
+        .catch(err => {
+          showToast("Erro ao inserir leitura: " + (err.erro || "Erro desconhecido"), "error");
+        });
+    };
+
+    // Atualizar leitura
+    document.getElementById("form-atualizar").onsubmit = function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const dados = {
+        sensor_id: form.sensor_id.value,
+        timestamp: toIsoStringLocal(form.timestamp.value),
+        tipo: form.tipo.value,
+        valores: JSON.parse(document.getElementById('input-valores-atualizar').value)
+      };
+      fetch("/leituras/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dados)
+      }).then(resp => resp.ok ? resp.json() : resp.json().then(j => Promise.reject(j)))
+        .then(() => {
+          showToast("Leitura atualizada com sucesso!", "success");
+          form.reset();
+          document.getElementById('lista-valores-atualizar').innerHTML = '';
+          document.getElementById('input-valores-atualizar').value = '';
+        })
+        .catch(err => {
+          showToast("Erro ao atualizar leitura: " + (err.erro || "Erro desconhecido"), "error");
+        });
+    };
+
+    // Consultas
     document.getElementById("form-ultima").onsubmit = async function(e) {
       e.preventDefault();
       let sensor_id = document.getElementById("sensor_id_ultima").value;
       let res = await fetch(`/leituras/ultima/${sensor_id}`);
       let data = await res.json();
-      document.getElementById("resultado").innerHTML = "<b>Última leitura:</b><br>" + renderTable(data);
+      showResult("<b>Última leitura:</b><br>" + renderTable(data, true));
     };
 
     document.getElementById("form-intervalo").onsubmit = async function(e) {
       e.preventDefault();
       let sensor_id = document.getElementById("sensor_id_intervalo").value;
-      let inicio = document.getElementById("inicio").value;
-      let fim = document.getElementById("fim").value;
+      let inicio = toIsoStringLocal(document.getElementById("inicio").value);
+      let fim = toIsoStringLocal(document.getElementById("fim").value);
       let res = await fetch(`/leituras/intervalo?sensor_id=${sensor_id}&inicio=${inicio}&fim=${fim}`);
       let data = await res.json();
-      document.getElementById("resultado").innerHTML = "<b>Leituras no intervalo:</b><br>" + renderTable(data);
+      showResult("<b>Leituras no intervalo:</b><br>" + renderTable(data, true));
     };
 
     document.getElementById("form-limite").onsubmit = async function(e) {
       e.preventDefault();
       let sensor_id = document.getElementById("sensor_id_limite").value;
+      let parametro = document.getElementById("parametro_limite").value;
       let limite = document.getElementById("limite").value;
-      let res = await fetch(`/leituras/limite?sensor_id=${sensor_id}&limite=${limite}`);
+      let res = await fetch(`/leituras/limite?sensor_id=${sensor_id}&parametro=${parametro}&limite=${limite}`);
       let data = await res.json();
-      document.getElementById("resultado").innerHTML = "<b>Leituras acima do limite:</b><br>" + renderTable(data);
+      showResult(`<b>Leituras com ${parametro} &gt; ${limite}:</b><br>` + renderTable(data, true));
     };
 
     document.getElementById("form-sensores").onsubmit = async function(e) {
       e.preventDefault();
       let res = await fetch(`/sensores`);
       let data = await res.json();
-      document.getElementById("resultado").innerHTML = "<b>Sensores cadastrados:</b><br>" + renderList(data);
+      showResult("<b>Sensores cadastrados:</b><br>" + renderList(data));
     };
 
     document.getElementById("form-alertas").onsubmit = async function(e) {
       e.preventDefault();
       let sensor_id = document.getElementById("sensor_id_alerta").value;
+      let parametro = document.getElementById("parametro_alerta").value;
       let limite = document.getElementById("limite_alerta").value;
-      let res = await fetch(`/leituras/alertas?sensor_id=${sensor_id}&limite=${limite}`);
+      let res = await fetch(`/leituras/alertas?sensor_id=${sensor_id}&parametro=${parametro}&limite=${limite}`);
       let data = await res.json();
-      document.getElementById("resultado").innerHTML = "<b>Leituras anômalas nas últimas 24h:</b><br>" + renderTable(data);
+      showResult(`<b>Leituras anômalas (${parametro} &gt; ${limite}) nas últimas 24h:</b><br>` + renderTable(data, true));
     };
   </script>
 </body>
