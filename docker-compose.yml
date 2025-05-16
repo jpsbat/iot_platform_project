@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  cassandra:
+    image: cassandra:4.1
+    container_name: cassandra
+    ports:
+      - "9042:9042"
+    volumes:
+      - ./cassandra:/cassandra-init
+    healthcheck:
+      test: ["CMD", "cqlsh", "-e", "describe keyspaces"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  cassandra-init:
+    image: cassandra:4.1
+    depends_on:
+      cassandra:
+        condition: service_healthy
+    volumes:
+      - ./cassandra:/cassandra-init
+    entrypoint: ["sh", "-c", "cqlsh cassandra -f /cassandra-init/init.cql"]
+    restart: "no"
+
+  flask:
+    build: ./
+    container_name: flask
+    ports:
+      - "5000:5000"
+    depends_on:
+      cassandra-init:
+        condition: service_completed_successfully
