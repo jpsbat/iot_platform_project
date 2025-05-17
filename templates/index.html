@@ -11,6 +11,11 @@
     <div class="resultado" id="resultado"></div>
     <h1>Monitoramento IoT</h1>
 
+    <h2>Listar Todos os Sensores</h2>
+    <form id="form-sensores">
+      <button type="submit">Listar Sensores</button>
+    </form>
+
     <h2>Inserir Nova Leitura</h2>
     <form id="form-inserir" method="POST" action="/leituras">
       <label for="sensor_id">Sensor ID:</label>
@@ -28,25 +33,6 @@
       <ul id="lista-valores-inserir"></ul>
       <input type="hidden" name="valores" id="input-valores-inserir">
       <button type="submit">Inserir</button>
-    </form>
-
-    <h2>Atualizar Leitura</h2>
-    <form id="form-atualizar" method="POST" action="/leituras/update">
-      <label for="sensor_id">Sensor ID:</label>
-      <input type="text" name="sensor_id" required><br>
-      <label for="timestamp">Timestamp:</label>
-      <input type="datetime-local" name="timestamp" required><br>
-      <label for="tipo">Tipo:</label>
-      <input type="text" name="tipo" required><br>
-      <div id="valores-atualizar">
-        <label>Valores:</label><br>
-        <input type="text" placeholder="Parâmetro (ex: temperatura)" class="parametro">
-        <input type="number" step="any" placeholder="Valor" class="valor">
-        <button type="button" onclick="adicionarValor('valores-atualizar')">Adicionar</button>
-      </div>
-      <ul id="lista-valores-atualizar"></ul>
-      <input type="hidden" name="valores" id="input-valores-atualizar">
-      <button type="submit">Atualizar</button>
     </form>
 
     <h2>Obter Última Leitura de um Sensor</h2>
@@ -76,11 +62,6 @@
       <label for="limite">Valor &gt; </label>
       <input type="number" step="any" id="limite" name="limite" required>
       <button type="submit">Buscar</button>
-    </form>
-
-    <h2>Listar Todos os Sensores</h2>
-    <form id="form-sensores">
-      <button type="submit">Listar Sensores</button>
     </form>
 
     <h2>Leituras Anômalas nas Últimas 24h (Qualquer Parâmetro)</h2>
@@ -215,32 +196,6 @@
         })
         .catch(err => {
           showToast("Erro ao inserir leitura: " + (err.erro || "Erro desconhecido"), "error");
-        });
-    };
-
-    // Atualizar leitura
-    document.getElementById("form-atualizar").onsubmit = function(e) {
-      e.preventDefault();
-      const form = e.target;
-      const dados = {
-        sensor_id: form.sensor_id.value,
-        timestamp: toIsoStringLocal(form.timestamp.value),
-        tipo: form.tipo.value,
-        valores: JSON.parse(document.getElementById('input-valores-atualizar').value)
-      };
-      fetch("/leituras/update", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dados)
-      }).then(resp => resp.ok ? resp.json() : resp.json().then(j => Promise.reject(j)))
-        .then(() => {
-          showToast("Leitura atualizada com sucesso!", "success");
-          form.reset();
-          document.getElementById('lista-valores-atualizar').innerHTML = '';
-          document.getElementById('input-valores-atualizar').value = '';
-        })
-        .catch(err => {
-          showToast("Erro ao atualizar leitura: " + (err.erro || "Erro desconhecido"), "error");
         });
     };
 
