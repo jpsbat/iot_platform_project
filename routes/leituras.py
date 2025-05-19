@@ -125,17 +125,20 @@ def registrar_rotas(session):
 
     @bp.route("/sensores", methods=["GET"])
     def listar_sensores():
-        sensor_ids_rows = session.execute("SELECT sensor_id FROM sensor_readings")
+        # Obter todos os IDs de sensores únicos
+        sensor_ids_rows = session.execute("SELECT DISTINCT sensor_id FROM sensor_readings")
         sensor_ids = [row.sensor_id for row in sensor_ids_rows]
         
         sensores_completos = []
         for sensor_id in sensor_ids:
+            # Buscar todas as leituras para esse sensor, ordenadas por timestamp
             rows = session.execute("""
                 SELECT * FROM sensor_readings 
                 WHERE sensor_id=%s 
-                LIMIT 1
+                ORDER BY timestamp DESC
             """, (sensor_id,))
             
+            # Processar cada leitura e adicionar à lista de resultados
             for row in rows:
                 sensor_info = dict(row._asdict())
                 if "valores" in sensor_info and sensor_info["valores"] is not None:
