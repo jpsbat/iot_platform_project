@@ -299,7 +299,7 @@
       e.preventDefault();
       let res = await fetch(`/sensores`);
       let data = await res.json();
-      showResult("<b>Sensores cadastrados:</b><br>" + renderTable(data));
+      showResult("<b>Sensores cadastrados:</b><br>" + renderTable(data, true));
     };
 
     document.getElementById("form-alertas").onsubmit = async function(e) {
