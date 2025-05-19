@@ -125,9 +125,27 @@ def registrar_rotas(session):
 
     @bp.route("/sensores", methods=["GET"])
     def listar_sensores():
-        rows = session.execute("SELECT DISTINCT sensor_id FROM sensor_readings")
-        sensores = [str(row.sensor_id) for row in rows]
-        return jsonify(sensores)
+        sensor_ids_rows = session.execute("SELECT sensor_id FROM sensor_readings")
+        sensor_ids = [row.sensor_id for row in sensor_ids_rows]
+        
+        sensores_completos = []
+        for sensor_id in sensor_ids:
+            rows = session.execute("""
+                SELECT * FROM sensor_readings 
+                WHERE sensor_id=%s 
+                LIMIT 1
+            """, (sensor_id,))
+            
+            for row in rows:
+                sensor_info = dict(row._asdict())
+                if "valores" in sensor_info and sensor_info["valores"] is not None:
+                    sensor_info["valores"] = dict(sensor_info["valores"])
+                if "timestamp" in sensor_info and sensor_info["timestamp"] is not None:
+                    sensor_info["timestamp"] = sensor_info["timestamp"].isoformat()
+                sensor_info["sensor_id"] = str(sensor_info["sensor_id"])
+                sensores_completos.append(sensor_info)
+        
+        return jsonify(sensores_completos)
 
     @bp.route("/leituras/alertas", methods=["GET"])
     def alertas():
